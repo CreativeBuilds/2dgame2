@@ -1,0 +1,21 @@
+var tileTypes = {
+    'grass':{
+        moveSpeed:1,
+        canWalk:true,
+        zIndex:1
+    },
+    'path':{
+        moveSpeed:1.3,
+        canWalk:true,
+        zIndex:1
+    },
+    'water':{
+        moveSpeed:1,
+        canWalk:false,
+        zIndex:1
+    },
+    'tree':{
+        zIndex:2,
+        canWalk:false,
+    }
+}
