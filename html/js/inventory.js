@@ -9,7 +9,19 @@ for(let y = 0; y < 5; y++){
                 'name':'',
                 'stackSize':0,
                 'maxStackSize':64,
-                'stackable':true
+                'stackable':true,
+                /*
+                 * x is the x pixel postion where we want to grab the image from inside of the main file
+                 * y is the y pixel postion where we want to grab the image from inside of the main file
+                 * w is width of the image
+                 * h is height of the image
+                 */
+                'img':{
+                    x:0,
+                    y:0,
+                    w:0,
+                    h:0
+                }
             }); 
         }
     }
@@ -28,6 +40,23 @@ function Inventory({ contents = Inventory.prototype.contents , w =  innerWidth/2
 
     this.topLeftX = innerWidth - this.w;
     this.topLeftY = innerHeight - this.h;
+}
+
+Inventory.prototype.setASlot = function({x,y,content}){
+    //X is the x position going left -> right
+    //Y is the y position going up -> down
+
+    let oldContent = this.contents[y][x];
+    outter: for(var key in content){
+        console.log(key);
+        if(!content.hasOwnProperty(key)) continue outter;
+        if(!oldContent.hasOwnProperty(key)){ continue outter;}
+
+        this.contents[y][x][key] = content[key];
+        console.log(this.contents[y][x][key], content[key], oldContent, this.contents[y][x]);
+    }
+
+    return this.contents[y][x]
 }
 
 Inventory.prototype.draw = function(ctx){
@@ -66,7 +95,11 @@ Inventory.prototype.draw = function(ctx){
             if(!this.inventorySlots[y][x]){
                 //TODO determine how much the width of one box is going to be!;
                 
-                ctx.fillStyle = '#5c483a';
+                if(x === toggle.hotbar && y === 0){
+                    ctx.fillStyle="#8f715d";
+                } else {
+                    ctx.fillStyle = '#5c483a';
+                }
                 ctx.shadowColor = 'black';
                 ctx.shadowBlur = 3;
                 ctx.fillRect(this.topLeftX + 12.5 + ((boxWidth+5)*x), this.topLeftY + 65 + ((boxWidth+5)*y), boxWidth, boxWidth);
@@ -93,10 +126,24 @@ Inventory.prototype.draw = function(ctx){
                     this.contents[y].push({})
                 }
             } else {
-                ctx.fillStyle = '#5c483a';
+                if(x === toggle.hotbar && y === 0){
+                    ctx.fillStyle="#8f715d";
+                } else {
+                    ctx.fillStyle = '#5c483a';
+                }
                 ctx.shadowColor = 'black';
-                ctx.shadowBlur = 3;
+                ctx.shadowBlur = 0;
                 ctx.fillRect(o.x, o.y, boxWidth, boxWidth);
+
+                /* draw the image of the item if there is one */
+                //The image is tileset
+                
+                if(this.contents[y][x] && this.contents[y][x].img.w !== 0){
+                    let tile = this.contents[y][x].img;
+                    ctx.drawImage(tileset, tile.x,tile.y,tile.w,tile.h, this.topLeftX + 12.5 + ((boxWidth+5)*x),this.topLeftY + 65 + ((boxWidth+5)*y),boxWidth,boxWidth);
+                } else if(x === 0,y===0){
+                    //console.log(this.contents[y][x].img)
+                }
 
                 let l = this.contents[y][x];
                 if(o.isHover(mouse.x, mouse.y)){
@@ -155,3 +202,8 @@ Inventory.prototype.draw = function(ctx){
 
 }
 
+Inventory.prototype.swapItems = function(x1,y1,x2,y2){
+    let temp = this.contents[y1][x1];
+    this.contents[y1][x1] = this.contents[y2][x2];
+    this.contents[y2][x2] = temp;
+}

@@ -11,6 +11,21 @@ var keysDown = {
 	40 : false
 };// || e.keyCode === 87|| e.keyCode === 83|| e.keyCode ===65|| e.keyCode === 68
 
+
+var toggle = {
+	'mouse':{
+		isDown: false,
+		isLong: false,
+		longTID: null,
+		inventoryItem: null
+	},
+	'hotbar':0
+}
+
+var scrollCheck = function(e){
+	console.log(e);
+}
+
 var viewport = {
 	screen		: [0,0],
 	startTile	: [0,0],
@@ -51,6 +66,7 @@ var mouse = {
 
 var player = new Player({ xSpawn:36, ySpawn:57 });
 player.inventory = new Inventory({w: innerWidth/(4*1.15), h: innerWidth/(4*1.15)+55 });
+
 
 
 function toIndex(x, y)
@@ -134,21 +150,7 @@ function getValue({ num }){
 
     //console.log(x, y);
 
-    if( x >= 0 && x <= 2 && y >= 0 && y <= 2){
-        //It's a grass tile!
-        return {'type':'grass','x':x,'y':y, 'tileInfo':tileTypes['grass'], sprites:[{x:x*32,y:y*32,w:32,h:32,d:200}]}
-    } else if( x >= 3 && x <= 5 && y >= 0 && y <= 2){
-        //It's a path tile!
-        return {'type':'path','x':x,'y':y, 'tileInfo':tileTypes['path'], sprites:[{x:x*32,y:y*32,w:32,h:32,d:200}]}
-    } else if( x >= 6 && x <= 8 && y >= 0 && y <= 2){
-		//It's a water tile!
-        return {'type':'water','x':x,'y':y, 'tileInfo':tileTypes['water'], sprites:[{x:x*32,y:y*32,w:32,h:32,d:500},{x:x*32,y:(y+3)*32,w:32,h:32,d:350},{x:x*32,y:(y+6)*32,w:32,h:32,d:200},{x:x*32,y:(y+9)*32,w:32,h:32,d:500}]}
-    }  else if( x >= 0 && x <= 3 && y >= 3 && y <= 6){
-		//It's a tree tile!
-        return {'type':'tree','x':x,'y':y, 'tileInfo':tileTypes['tree'], sprites:[{x:x*32,y:y*32,w:32,h:32}]}
-    } else {
-		console.log("CONFLICT!", x, y);
-	}
+    return getTileForValue(x,y)
 }
 
 function Map(mapName){
@@ -199,6 +201,20 @@ function Map(mapName){
 		}
 		
 	}
+
+	this.getTile = function(x,y){
+		let tileX = Math.floor((x-viewport.offset[0])/tileW);
+		let tileY = Math.floor((y- viewport.offset[1])/tileH);
+
+		let num = parseInt(this.map_Trees[tileY][tileX]);
+		if(num !== -1){
+			let tile = getValue({ num });
+			console.log(num);
+			return tile;
+		}
+		
+		
+	}
 	
 }
 
@@ -220,6 +236,11 @@ window.onload = function()
 	//TODO redo the keydown system
 
 	let running = false;
+
+	let check = function(e, num){
+		return e.keyCode === num;
+	}
+
 	window.addEventListener("keydown", function(e) {
 		if(e.keyCode>=37 && e.keyCode<=40) { keysDown[e.keyCode] = true; }
 		if(e.keyCode === 16 && !running){
@@ -232,6 +253,23 @@ window.onload = function()
 		} else if(e.keyCode === 73 && inventoryOpen || e.keyCode === 27 && inventoryOpen){
 			inventoryOpen = false;
 		}
+
+		//The user is pressing button 1
+		if(check(e, 97) || check(e, 49)){
+			toggle.hotbar = 0;
+		//The user is pressing button 2
+		} else if(check(e, 98) || check(e, 50)){
+			toggle.hotbar = 1;
+		//The user is pressing button 3
+		} else  if(check(e, 99) || check(e, 51)){
+			toggle.hotbar = 2;
+		//The user is pressing button 4
+		} else if(check(e, 100) || check(e, 52)){
+			toggle.hotbar = 3;
+		//The user is pressing button 5
+		} else if(check(e, 101) || check(e, 53)){
+			toggle.hotbar = 4;
+		}
 	});
 	window.addEventListener("keyup", function(e) {
 		if(e.keyCode>=37 && e.keyCode<=40) { keysDown[e.keyCode] = false; }
@@ -243,6 +281,39 @@ window.onload = function()
 		
 	});
 
+	
+	window.addEventListener("mousedown", function(e){
+		toggle.mouse.isDown = true;
+		toggle.mouse.isLong = false;
+		clearTimeout(toggle.mouse.longTID);
+		toggle.mouse.longTID = setTimeout(function(){toggle.mouse.isLong = true},150);
+	})
+
+	window.addEventListener("mouseup", function(e){
+		if(toggle.mouse.isDown && toggle.mouse.isLong){
+			toggle.mouse.isDown = false;
+			toggle.mouse.isLong = false;
+
+			if(toggle.mouse.inventoryItem){
+				
+				//Check to see where the mouse is and if its over another inventory slot, move the item there!;
+				let newItemSlot = player.getClickedItem(mouse.x,mouse.y);
+				console.log(newItemSlot);
+				if(typeof newItemSlot === "undefined"){toggle.mouse.inventoryItem = null;return;}
+
+				if(newItemSlot === toggle.mouse.inventoryItem){toggle.mouse.inventoryItem = null;return;}
+				
+				
+				player.inventory.swapItems(newItemSlot.x,newItemSlot.y,toggle.mouse.inventoryItem.x,toggle.mouse.inventoryItem.y);
+				toggle.mouse.inventoryItem = null;
+			}
+		} else if(toggle.mouse.isDown){
+			toggle.mouse.isDown = false;
+			clearTimeout(toggle.mouse.longTID);
+			console.log(map.getTile(mouse.x,mouse.y))
+		}
+	})
+
 	window.addEventListener("mousemove", function(e){
 		mouse.x = e.pageX;
 		mouse.y = e.pageY;
@@ -253,11 +324,17 @@ window.onload = function()
 	
 	requestAnimationFrame(drawGame);
 };
-
+let frame1 = true;
 function drawGame()
 {
 	if(!tilesetLoaded || !playersetLoaded) { requestAnimationFrame(drawGame); return; }
 	if(ctx==null) { return; }
+
+	if(frame1){
+		frame1 = !frame1;
+		player.inventory.draw(ctx);
+		player.inventory.setASlot({x:0,y:0,content:{img:{x:0,y:224,w:32,h:32},name:'axe'}})
+	}
 
 	var currentFrameTime = Date.now();
 	var timeElapsed = currentFrameTime - lastFrameTime;
@@ -294,11 +371,20 @@ function drawGame()
 	player.draw();
 	map.draw(map.map_Trees);
 
+	player.drawHotbar();
+
 	/*
 	 * if inventory is open (i is pressed)
 	 */
 	if(inventoryOpen){
 		player.inventory.draw(ctx);
+	}
+
+	
+	if(toggle.mouse.isLong){
+		if(inventoryOpen && !toggle.mouse.inventoryItem){
+			toggle.mouse.inventoryItem = player.getClickedItem(mouse.x,  mouse.y);
+		}
 	}
 
 	ctx.fillStyle = "#ff0000";
