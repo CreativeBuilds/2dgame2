@@ -242,6 +242,20 @@ window.onload = function()
 	}
 
 	window.addEventListener("keydown", function(e) {
+		switch(e.keyCode){
+			case 68:
+				keysDown[39] = true;
+				break;
+			case 83:
+				keysDown[40] = true;
+				break;
+			case 65:
+				keysDown[37] = true;
+				break;
+			case 87:
+				keysDown[38] = true;
+				break;
+		}
 		if(e.keyCode>=37 && e.keyCode<=40) { keysDown[e.keyCode] = true; }
 		if(e.keyCode === 16 && !running){
 			player.delayMove = player.delayMove / 1.5;
@@ -272,6 +286,21 @@ window.onload = function()
 		}
 	});
 	window.addEventListener("keyup", function(e) {
+		console.log(e.keyCode);
+		switch(e.keyCode){
+			case 68:
+				keysDown[39] = false;
+				break;
+			case 83:
+				keysDown[40] = false;
+				break;
+			case 65:
+				keysDown[37] = false;
+				break;
+			case 87:
+				keysDown[38] = false;
+				break;
+		}
 		if(e.keyCode>=37 && e.keyCode<=40) { keysDown[e.keyCode] = false; }
 		if(e.keyCode === 16){
 			player.delayMove = player.delayMove * 1.5;
@@ -383,7 +412,14 @@ function drawGame()
 	
 	if(toggle.mouse.isLong){
 		if(inventoryOpen && !toggle.mouse.inventoryItem){
-			toggle.mouse.inventoryItem = player.getClickedItem(mouse.x,  mouse.y);
+			let test = player.getClickedItem(mouse.x,  mouse.y);
+			debugger;
+			if(test){
+				if(test.name !== ''){
+					toggle.mouse.inventoryItem = test;
+				}
+			}
+			
 		} else if(inventoryOpen && toggle.mouse.inventoryItem) {
 			let tile = toggle.mouse.inventoryItem.img;
 			let boxWidth = player.inventory.inventorySlots[0][0].boxWidth * 0.8;

@@ -152,7 +152,6 @@ Player.prototype.getClickedItem = function(x,y){
 		for(let o = 0; o < this.inventory.inventorySlots[l].length; o++){
 			let obj = this.inventory.inventorySlots[l][o];
 			if(obj.x <= x && obj.x + obj.boxWidth >= x && obj.y <= y && obj.y + obj.boxWidth >= y){
-				
 				/*
 				 * check to see if the item exists in the slot!
 				 */

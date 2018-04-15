@@ -140,7 +140,6 @@ Inventory.prototype.draw = function(ctx){
                 
                 if(this.contents[y][x] && this.contents[y][x].img.w !== 0){
                     let tile = this.contents[y][x].img;
-                    debugger;
                     if(toggle.mouse.inventoryItem && toggle.mouse.inventoryItem.x === x && toggle.mouse.inventoryItem.y === y ){
                         //ctx.drawImage(tileset, tile.x,tile.y,tile.w,tile.h, mouse.x - (boxWidth/2),mouse.y - (boxWidth/2),boxWidth,boxWidth);
                         
