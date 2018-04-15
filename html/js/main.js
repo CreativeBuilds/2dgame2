@@ -384,6 +384,10 @@ function drawGame()
 	if(toggle.mouse.isLong){
 		if(inventoryOpen && !toggle.mouse.inventoryItem){
 			toggle.mouse.inventoryItem = player.getClickedItem(mouse.x,  mouse.y);
+		} else if(inventoryOpen && toggle.mouse.inventoryItem) {
+			let tile = toggle.mouse.inventoryItem.img;
+			let boxWidth = player.inventory.inventorySlots[0][0].boxWidth * 0.8;
+			ctx.drawImage(tileset, tile.x,tile.y,tile.w,tile.h, mouse.x - (boxWidth/2),mouse.y - (boxWidth/2),boxWidth,boxWidth);
 		}
 	}
 
