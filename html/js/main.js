@@ -322,9 +322,11 @@ window.onload = function()
 
 	
 	window.addEventListener("mousedown", function(e){
+		if(e.button !== 0){return;}
 		toggle.mouse.isDown = true;
 		toggle.mouse.isLong = false;
 		clearTimeout(toggle.mouse.longTID);
+		toggle.mouse.started = Date.now();
 		toggle.mouse.longTID = setTimeout(function(){toggle.mouse.isLong = true},150);
 
 		if(toggle.selection){
@@ -333,7 +335,7 @@ window.onload = function()
 	})
 
 	window.addEventListener("mouseup", function(e){
-		if(toggle.mouse.isDown && toggle.mouse.isLong){
+		if(toggle.mouse.isDown && toggle.mouse.isLong && e.button === 0){
 			toggle.mouse.isDown = false;
 			toggle.mouse.isLong = false;
 
@@ -352,16 +354,23 @@ window.onload = function()
 			}
 		} else if(toggle.mouse.isDown){
 			toggle.mouse.isDown = false;
+			toggle.mouse.started = 0;
 			clearTimeout(toggle.mouse.longTID);
-			console.log(map.getTile({x:mouse.x,y:mouse.y}))
+		} else if(toggle.mouse.isDown && e.button === 0){
+			toggle.mouse.isDown = false;
+			toggle.mouse.started = 0;
 		}
 	})
 
 	window.addEventListener("mousemove", function(e){
 		mouse.x = e.pageX;
 		mouse.y = e.pageY;
+		
 
-		if(toggle.mouse.isDown){
+		if(toggle.mouse.isDown && toggle.mouse.started && Date.now() > toggle.mouse.started + 75){
+			console.log(Date.now() - toggle.mouse.started);
+			toggle.mouse.isLong = true;
+		} else if(toggle.mouse.isDown && inventoryOpen && toggle.mouse.started && Date.now() > toggle.mouse.started + 45){
 			toggle.mouse.isLong = true;
 		}
 
@@ -372,7 +381,11 @@ window.onload = function()
 	})
 
 	window.addEventListener('contextmenu', function(e){
-		console.log("Right clicked!",e);
+		let treeTile = map.getTile({x:mouse.x,y:mouse.y,map:'map_Trees'});    
+		console.log(treeTile);
+		if(treeTile && !toggle.contextmenu){
+			/* User right-clicked on tree! */
+		}
 	})
 
 	viewport.screen = [document.getElementById('game').width,
