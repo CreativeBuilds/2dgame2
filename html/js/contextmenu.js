@@ -20,10 +20,8 @@ function Contextmenu({x = mouse.x, y = mouse.y, boxes = [], w = 108}){
 
     this.getBox = function({x = mouse.x,y = mouse.y}){
         //Return the box the mouse is over!
-        //debugger;
         if(!this.h){return;}
         if(x >= this.x && x <= this.x + this.w){
-            debugger;
             if(y >= this.y && y <= y + this.h){
                 //Get the box, the mouse is in the contextmenu
                 let h = 5 + this.y;
@@ -87,7 +85,7 @@ function Contextmenu({x = mouse.x, y = mouse.y, boxes = [], w = 108}){
                 ctx.fillStyle = '#725948';
             }
 
-            if(x.verify && !x.verify({x:this.x, y:this.y})){
+            if(x.verify && x.verify({x:this.x, y:this.y}) !== true){
                 ctx.fillStyle = '#140e0a'
                 textStyle = "#2a1e15"
             }

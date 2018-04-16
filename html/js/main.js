@@ -207,9 +207,16 @@ function Map(mapName){
 	/*
 	 * Takes mouse positions and returns tile
 	 */
-	this.getTile = function({x,y, map = "map_Trees"}){
-		let tileX = Math.floor((x-viewport.offset[0])/tileW);
-		let tileY = Math.floor((y- viewport.offset[1])/tileH);
+	this.getTile = function({x,y, map = "map_Trees", tileX, tileY}){
+		if(!tileX){
+			tileX = Math.floor((x-viewport.offset[0])/tileW);
+		}
+
+		if(!tileY){
+			tileY = Math.floor((y- viewport.offset[1])/tileH);
+		}
+		
+		
 
 		let num = parseInt(this[map][tileY][tileX]);
 		if(num !== -1){
@@ -399,8 +406,55 @@ window.onload = function()
 				clicked: function(){
 					/* start chopping the tree */
 				},
-				verify: function(){
+				verify: function({x,y}){
 					/* verify if the user can chop this tree! */
+					
+					let tile = map.getTilePos(x,y);
+					/*tree = new Array(4);
+					for(let l = 0; l < tree.length; l++){
+						tree.push([]);
+					}*/
+					let bottomLeft;
+					let p = 0; //This is y
+					let o = 0; //This is X
+					
+					while(map.getTile({tileX:tile.x,tileY:tile.y+p})){
+						
+						p++;
+					}
+					p -= 1;
+					while(map.getTile({tileX:tile.x+o,tileY:tile.y+p})){
+						o--;
+					}
+					o+=1;
+
+					bottomLeft = {x:tile.x+o-1,y:tile.y+p+1};
+
+					p = 0;
+					o = 0;
+
+					while(map.getTile({tileX:tile.x,tileY:tile.y+p})){
+						
+						p--;
+					}
+					p += 1;
+					while(map.getTile({tileX:tile.x+o,tileY:tile.y+p})){
+						o++;
+					}
+					o-=1;
+
+					topRight = {x:tile.x+o+1,y:tile.y+p-1}
+
+					/*
+					 * If the user is within the area of the tree!
+					 */
+					debugger;
+					if(player.tileFrom[0] >= bottomLeft.x && player.tileFrom[0] <= topRight.x && player.tileFrom[1] >= topRight.y && player.tileFrom[1] <= bottomLeft.y){
+						return true;
+					} else {
+						return false;
+					}
+					
 				}
 			}];
 			toggle.contextmenu = new Contextmenu({boxes:boxes});
