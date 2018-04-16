@@ -4,6 +4,8 @@ var tileW = 32, tileH = 32;
 var mapW = 0, mapH = 0;
 var currentSecond = 0, frameCount = 0, framesLastSecond = 0, lastFrameTime = 0; baseSpeed = 250;
 
+var canvas = document.querySelector('canvas');
+
 var keysDown = {
 	37 : false,
 	38 : false,
@@ -202,18 +204,25 @@ function Map(mapName){
 		
 	}
 
-	this.getTile = function(x,y){
+	/*
+	 * Takes mouse positions and returns tile
+	 */
+	this.getTile = function({x,y, map = "map_Trees"}){
 		let tileX = Math.floor((x-viewport.offset[0])/tileW);
 		let tileY = Math.floor((y- viewport.offset[1])/tileH);
 
-		let num = parseInt(this.map_Trees[tileY][tileX]);
+		let num = parseInt(this[map][tileY][tileX]);
 		if(num !== -1){
 			let tile = getValue({ num });
-			console.log(num);
 			return tile;
 		}
-		
-		
+	}
+
+	this.getTilePos = function(x,y){
+		return {
+			x:Math.ceil((x-viewport.offset[0])/tileW),
+			y:Math.ceil((y- viewport.offset[1])/tileH)
+		}
 	}
 	
 }
@@ -256,6 +265,7 @@ window.onload = function()
 				keysDown[38] = true;
 				break;
 		}
+
 		if(e.keyCode>=37 && e.keyCode<=40) { keysDown[e.keyCode] = true; }
 		if(e.keyCode === 16 && !running){
 			player.delayMove = player.delayMove / 1.5;
@@ -316,6 +326,10 @@ window.onload = function()
 		toggle.mouse.isLong = false;
 		clearTimeout(toggle.mouse.longTID);
 		toggle.mouse.longTID = setTimeout(function(){toggle.mouse.isLong = true},150);
+
+		if(toggle.selection){
+			toggle.selection.clearOnMove = true;
+		}
 	})
 
 	window.addEventListener("mouseup", function(e){
@@ -339,13 +353,26 @@ window.onload = function()
 		} else if(toggle.mouse.isDown){
 			toggle.mouse.isDown = false;
 			clearTimeout(toggle.mouse.longTID);
-			console.log(map.getTile(mouse.x,mouse.y))
+			console.log(map.getTile({x:mouse.x,y:mouse.y}))
 		}
 	})
 
 	window.addEventListener("mousemove", function(e){
 		mouse.x = e.pageX;
 		mouse.y = e.pageY;
+
+		if(toggle.mouse.isDown){
+			toggle.mouse.isLong = true;
+		}
+
+		if(toggle.selection && toggle.selection.clearOnMove){
+			toggle.selection = null;
+		}
+		
+	})
+
+	window.addEventListener('contextmenu', function(e){
+		console.log("Right clicked!",e);
 	})
 
 	viewport.screen = [document.getElementById('game').width,
@@ -397,7 +424,17 @@ function drawGame()
 		player.position[1] + (player.dimensions[1]/2));
 
 	map.draw(map.map);
+	/* draw selection */
+
+	if(toggle.selection && toggle.selection.clearOnUpdate){
+		toggle.selection = null;
+	}
+
+	if(toggle.selection){
+		toggle.selection.draw();
+	}
 	player.draw();
+
 	map.draw(map.map_Trees);
 
 	player.drawHotbar();
@@ -409,23 +446,50 @@ function drawGame()
 		player.inventory.draw(ctx);
 	}
 
-	
+	/*
+	 * If the user is holding their mouse button down
+	 */
 	if(toggle.mouse.isLong){
-		if(inventoryOpen && !toggle.mouse.inventoryItem){
+		//Checks to see if the user is holding the mouse down over an item in their inventory, and doesn't already have one selected
+		if(inventoryOpen && !toggle.mouse.inventoryItem && player.getClickedItem(mouse.x,  mouse.y)){
 			let test = player.getClickedItem(mouse.x,  mouse.y);
-			debugger;
 			if(test){
 				if(test.name !== ''){
 					toggle.mouse.inventoryItem = test;
 				}
 			}
-			
+		//User is holding onto an item
 		} else if(inventoryOpen && toggle.mouse.inventoryItem) {
 			let tile = toggle.mouse.inventoryItem.img;
 			let boxWidth = player.inventory.inventorySlots[0][0].boxWidth * 0.8;
 			ctx.drawImage(tileset, tile.x,tile.y,tile.w,tile.h, mouse.x - (boxWidth/2),mouse.y - (boxWidth/2),boxWidth,boxWidth);
+		//Inventory is not open and the user is not holding an item
+		//Check to see if the user is over any tiles
+		} else if(map.getTile({x:mouse.x, y:mouse.y,map:"map"})){
+			if(!toggle.selection){
+				toggle.selection = new Selection({tile1:map.getTilePos(mouse.x,mouse.y), tile2:map.getTilePos(mouse.x,mouse.y)});
+				canvas.addEventListener('selection_done', function(){
+					toggle.selection = null;
+				})
+			} else {
+				toggle.selection.update(map.getTilePos(mouse.x,mouse.y));
+
+			}
 		}
+	/*
+	 * The mouse button is now up!
+	 */
+	} else if(!toggle.mouse.isDown) {
+		/*
+		 * Sets the selection to done, meaning any more mouse moving will not be registered and it will trigger an event
+		 */
+		if(toggle.selection){
+			canvas.dispatchEvent(toggle.selection.done);
+		}
+		
 	}
+
+
 
 	ctx.fillStyle = "#ff0000";
 	ctx.fillText("FPS: " + framesLastSecond, 10, 20);
