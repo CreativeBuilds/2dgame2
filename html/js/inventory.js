@@ -35,8 +35,8 @@ function Inventory({ contents = Inventory.prototype.contents , w =  innerWidth/2
 
     this.w = w;
     this.h = w+55;
-    this.fillStyle = '#000000'
-    this.textStyle = '#ffffff'
+    this.fillStyle = '#000000';
+    this.textStyle = '#2a1e15';
 
     this.topLeftX = innerWidth - this.w;
     this.topLeftY = innerHeight - this.h;

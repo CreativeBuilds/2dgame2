@@ -332,6 +332,12 @@ window.onload = function()
 		if(toggle.selection){
 			toggle.selection.clearOnMove = true;
 		}
+
+		if(toggle.contextmenu){
+			if(!toggle.contextmenu.getBox({})){
+				toggle.contextmenu = null;
+			}
+		}
 	})
 
 	window.addEventListener("mouseup", function(e){
@@ -383,8 +389,21 @@ window.onload = function()
 	window.addEventListener('contextmenu', function(e){
 		let treeTile = map.getTile({x:mouse.x,y:mouse.y,map:'map_Trees'});    
 		console.log(treeTile);
-		if(treeTile && !toggle.contextmenu){
+		if(treeTile){
 			/* User right-clicked on tree! */
+			let boxes = [{
+				t:"Chop",
+				h:36,
+				hover:false,
+				fontSize:18,
+				clicked: function(){
+					/* start chopping the tree */
+				},
+				verify: function(){
+					/* verify if the user can chop this tree! */
+				}
+			}];
+			toggle.contextmenu = new Contextmenu({boxes:boxes});
 		}
 	})
 
@@ -478,7 +497,8 @@ function drawGame()
 			ctx.drawImage(tileset, tile.x,tile.y,tile.w,tile.h, mouse.x - (boxWidth/2),mouse.y - (boxWidth/2),boxWidth,boxWidth);
 		//Inventory is not open and the user is not holding an item
 		//Check to see if the user is over any tiles
-		} else if(map.getTile({x:mouse.x, y:mouse.y,map:"map"})){
+		//Make sure contextmenu isn't open!
+		} else if(map.getTile({x:mouse.x, y:mouse.y,map:"map"}) && !toggle.contextmenu){
 			if(!toggle.selection){
 				toggle.selection = new Selection({tile1:map.getTilePos(mouse.x,mouse.y), tile2:map.getTilePos(mouse.x,mouse.y)});
 				canvas.addEventListener('selection_done', function(){
@@ -500,6 +520,11 @@ function drawGame()
 			canvas.dispatchEvent(toggle.selection.done);
 		}
 		
+	}
+
+	if(toggle.contextmenu && toggle.contextmenu.draw){
+		toggle.contextmenu.check({});
+		toggle.contextmenu.draw();
 	}
 
 
