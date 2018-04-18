@@ -155,86 +155,6 @@ function getValue({ num }){
     return getTileForValue(x,y)
 }
 
-function Map(mapName){
-
-
-	this.image = null;
-	this.lastImage = null;
-
-	let image = null;
-
-	this.map = require(__dirname + `/maps/${mapName}.json`);
-	/*
-	 * Nowalk is restricting where the player can walk
-	 */
-	this.map_noWalk = require(__dirname + `/maps/${mapName}_noWalk.json`);
-	/*
-	 * Z2-T is where trees/bushes are
-	 */
-	this.map_Trees = require(__dirname + `/maps/${mapName}_Z2-T.json`);
-
-	mapW = this.map[0].length, mapH = this.map.length; 
-
-	let glob = this;
-	this.values = getValue;
-
-	this.draw = function(map){
-		for(let y = viewport.startTile[1]; y <= viewport.endTile[1]; ++y)
-		{
-			inner: for(let x = viewport.startTile[0]; x <= viewport.endTile[0]; ++x)
-			{
-				/*
-				 * Get the tile type using this.values[this.map[y][x]].sprite
-				 */
-				let num = parseInt(map[y][x]);
-				if(num === -1){continue inner;}
-				
-				let tile = getSprite({ num });
-				ctx.drawImage(tileset, tile.x,tile.y,tile.w,tile.h, viewport.offset[0]+(x*tileW),viewport.offset[1]+(y*tileH),tileW,tileH);
-			}
-		}
-		
-	}
-
-	this.canWalk = function(x,y){
-		//Takes coordinates in tiles not pixels
-		if(this.map_noWalk[y][x] === "0"){ return false; }else {
-			return (this.values({num:this.map[y][x]}).tileInfo.canWalk);
-		}
-		
-	}
-
-	/*
-	 * Takes mouse positions and returns tile
-	 */
-	this.getTile = function({x,y, map = "map_Trees", tileX, tileY}){
-		if(!tileX){
-			tileX = Math.floor((x-viewport.offset[0])/tileW);
-		}
-
-		if(!tileY){
-			tileY = Math.floor((y- viewport.offset[1])/tileH);
-		}
-		
-		
-
-		let num = parseInt(this[map][tileY][tileX]);
-		if(num !== -1){
-			let tile = getValue({ num });
-			return tile;
-		}
-	}
-
-	this.getTilePos = function(x,y){
-		return {
-			x:Math.ceil((x-viewport.offset[0])/tileW),
-			y:Math.ceil((y- viewport.offset[1])/tileH)
-		}
-	}
-	
-}
-
-
 let map = new Map(mapName);
 let inventoryOpen = false;
 
@@ -288,19 +208,26 @@ window.onload = function()
 		//The user is pressing button 1
 		if(check(e, 97) || check(e, 49)){
 			toggle.hotbar = 0;
+			player.inventory.equipped = player.inventory.contents[0][0];
 		//The user is pressing button 2
 		} else if(check(e, 98) || check(e, 50)){
 			toggle.hotbar = 1;
+			player.inventory.equipped = player.inventory.contents[0][1];
 		//The user is pressing button 3
 		} else  if(check(e, 99) || check(e, 51)){
 			toggle.hotbar = 2;
+			player.inventory.equipped = player.inventory.contents[0][2];
 		//The user is pressing button 4
 		} else if(check(e, 100) || check(e, 52)){
 			toggle.hotbar = 3;
+			player.inventory.equipped = player.inventory.contents[0][3];
 		//The user is pressing button 5
 		} else if(check(e, 101) || check(e, 53)){
 			toggle.hotbar = 4;
+			player.inventory.equipped = player.inventory.contents[0][4];
 		}
+
+		
 	});
 	window.addEventListener("keyup", function(e) {
 		console.log(e.keyCode);
@@ -342,7 +269,8 @@ window.onload = function()
 
 		if(toggle.contextmenu){
 			if(!toggle.contextmenu.getBox({})){
-				toggle.contextmenu = null;
+				document.getElementById("game").classList.remove('hovering');
+				delete toggle.contextmenu;
 			}
 		}
 	})
@@ -395,7 +323,10 @@ window.onload = function()
 
 	window.addEventListener('contextmenu', function(e){
 		let treeTile = map.getTile({x:mouse.x,y:mouse.y,map:'map_Trees'});    
-		console.log(treeTile);
+		
+		let x = mouse.x;
+		let y = mouse.y;
+		console.log((x-viewport.offset[0])/32,(y-viewport.offset[1])/32,map.getTilePos(x,y));
 		if(treeTile){
 			/* User right-clicked on tree! */
 			let boxes = [{
@@ -403,8 +334,24 @@ window.onload = function()
 				h:36,
 				hover:false,
 				fontSize:18,
+				x:x,
+				y:y,
 				clicked: function(){
 					/* start chopping the tree */
+
+					//Determine what kind of tree it is
+					//TODO after we add multiple types change this
+					let type = "oak";
+					let choppingSpeed = 5000;
+
+					//Based on what tree it is and what tool (if we have a tool) equiped how fast we will chop it down!
+					if(toggle.contextmenu){
+						toggle.chopping = new Tree({bottomLeft: this.bottomLeft, topRight: this.topRight, verify: this.verify,x:this.x,y:this.y});
+						document.getElementById("game").classList.remove('hovering');
+						delete toggle.contextmenu;
+					}
+					
+
 				},
 				verify: function({x,y}){
 					/* verify if the user can chop this tree! */
@@ -417,24 +364,26 @@ window.onload = function()
 					let bottomLeft;
 					let p = 0; //This is y
 					let o = 0; //This is X
+					//console.log(tile);
+					map.getTile({tileX:tile.x,tileY:tile.y})
 					
 					while(map.getTile({tileX:tile.x,tileY:tile.y+p})){
-						
 						p++;
 					}
 					p -= 1;
 					while(map.getTile({tileX:tile.x+o,tileY:tile.y+p})){
+						//console.log("o",map.getTile({tileX:tile.x+o,tileY:tile.y+p}))
 						o--;
 					}
 					o+=1;
 
 					bottomLeft = {x:tile.x+o-1,y:tile.y+p+1};
+					this.bottomLeft = bottomLeft;
 
 					p = 0;
 					o = 0;
 
 					while(map.getTile({tileX:tile.x,tileY:tile.y+p})){
-						
 						p--;
 					}
 					p += 1;
@@ -444,22 +393,25 @@ window.onload = function()
 					o-=1;
 
 					topRight = {x:tile.x+o+1,y:tile.y+p-1}
+					this.topRight = topRight;
 
 					/*
 					 * If the user is within the area of the tree!
 					 */
-					debugger;
 					if(player.tileFrom[0] >= bottomLeft.x && player.tileFrom[0] <= topRight.x && player.tileFrom[1] >= topRight.y && player.tileFrom[1] <= bottomLeft.y){
 						return true;
 					} else {
 						return false;
 					}
+
+					map.drawTile(tile.x,tile.y);
 					
 				}
 			}];
-			toggle.contextmenu = new Contextmenu({boxes:boxes});
+			toggle.contextmenu = new Contextmenu({boxes:boxes,x,y});
 		}
 	})
+
 
 	viewport.screen = [document.getElementById('game').width,
 		document.getElementById('game').height];
@@ -467,6 +419,7 @@ window.onload = function()
 	requestAnimationFrame(drawGame);
 };
 let frame1 = true;
+
 function drawGame()
 {
 	if(!tilesetLoaded || !playersetLoaded) { requestAnimationFrame(drawGame); return; }
@@ -475,7 +428,7 @@ function drawGame()
 	if(frame1){
 		frame1 = !frame1;
 		player.inventory.draw(ctx);
-		player.inventory.setASlot({x:0,y:0,content:{img:{x:0,y:224,w:32,h:32},name:'axe'}})
+		player.inventory.setASlot({x:0,y:0,content:{img:{x:0,y:224,w:32,h:32},name:'axe',stackSize:1}})
 	}
 
 	var currentFrameTime = Date.now();
@@ -522,6 +475,10 @@ function drawGame()
 	player.draw();
 
 	map.draw(map.map_Trees);
+
+	if(toggle.chopping){
+		toggle.chopping.draw();
+	}
 
 	player.drawHotbar();
 
@@ -576,11 +533,11 @@ function drawGame()
 		
 	}
 
-	if(toggle.contextmenu && toggle.contextmenu.draw){
+	if(toggle.contextmenu !== null && toggle.contextmenu && toggle.contextmenu.draw){
+		console.log(toggle.contextmenu)
 		toggle.contextmenu.check({});
 		toggle.contextmenu.draw();
 	}
-
 
 
 	ctx.fillStyle = "#ff0000";

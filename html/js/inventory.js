@@ -27,11 +27,41 @@ for(let y = 0; y < 5; y++){
     }
 }
 
+/*
+ * Event Listener area
+ */
+
+window.addEventListener('treeChopped', function(e){
+    /*
+     * e is the tree variable
+     */
+    for(y of this2.contents){
+        for(content of y){
+            debugger;
+            if(content.name === "wood" && content.stackSize + e.detail.amountOfWood <= content.maxStackSize){
+                content.stackSize += e.detail.amountOfWood;
+                return;
+            } else if(content.name === '') {
+                content.name = "wood";
+                content.maxStackSize = 999;
+                content.stackSize = e.detail.amountOfWood;
+                content.img = {
+                    x:128,
+                    y:96,
+                    w:32,
+                    h:32
+                }
+                return;
+            }
+        }
+    }
+    
+})
+
+
 function Inventory({ contents = Inventory.prototype.contents , w =  innerWidth/2, h = innerHeight/2 }){
     this.contents = contents; //The actual items
     this.inventorySlots = [];
-
-    //if(w < 420){w = 420}
 
     this.w = w;
     this.h = w+55;
@@ -58,9 +88,10 @@ Inventory.prototype.setASlot = function({x,y,content}){
 
     return this.contents[y][x]
 }
-
+let this2 = this;
 Inventory.prototype.draw = function(ctx){
     //Draw the Border;
+    this2 = this;
     ctx.save();
     ctx.fillStyle = '#2c2016';
     ctx.shadowColor = 'black';
@@ -97,6 +128,7 @@ Inventory.prototype.draw = function(ctx){
                 
                 if(x === toggle.hotbar && y === 0){
                     ctx.fillStyle="#8f715d";
+                    this.equipped = this.contents[y][x];
                 } else {
                     ctx.fillStyle = '#5c483a';
                 }
@@ -128,6 +160,7 @@ Inventory.prototype.draw = function(ctx){
             } else {
                 if(x === toggle.hotbar && y === 0){
                     ctx.fillStyle="#8f715d";
+                    this.equipped = this.contents[y][x];
                 } else {
                     ctx.fillStyle = '#5c483a';
                 }
@@ -146,9 +179,14 @@ Inventory.prototype.draw = function(ctx){
                     } else {
                         ctx.drawImage(tileset, tile.x,tile.y,tile.w,tile.h, this.topLeftX + 12.5 + ((boxWidth+5)*x),this.topLeftY + 65 + ((boxWidth+5)*y),boxWidth,boxWidth);
                     }
+
+                    ctx.fillStyle = "white";
+                    ctx.font = `1vw Arial, Helvetica, sans-serif`
+                    ctx.textAlign = "left";
+                    if(this.contents[y][x].stackSize > 1){
+                        ctx.fillText("x"+this.contents[y][x].stackSize, this.topLeftX + 12.5 + 3+ ((boxWidth+5)*x),this.topLeftY + 65 - 3 + ((boxWidth+5)*y)+boxWidth);
+                    }
                     
-                } else if(x === 0,y===0){
-                    //console.log(this.contents[y][x].img)
                 }
 
                 let l = this.contents[y][x];

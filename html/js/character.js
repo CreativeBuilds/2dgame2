@@ -54,6 +54,10 @@ Character.prototype.processMovement = function(t)
 		this.position[1] = Math.round(this.position[1]);
 	}
 
+	if(this.playerMove){
+		this.playerMove();
+	}
+
 	return true;
 }
 Character.prototype.draw = function(){
@@ -136,6 +140,15 @@ Player.prototype.drawHotbar = function(){
 
 		let tile = content.img;
 		ctx.drawImage(tileset, tile.x,tile.y,tile.w,tile.h, topLeftX + b + (x*(boxWidth+5)),topLeftY + b,boxWidth,boxWidth);
+
+		ctx.fillStyle = "white";
+		ctx.font = `1vw Arial, Helvetica, sans-serif`
+		ctx.textAlign = "left";
+
+		if(this.inventory.contents[0][x].stackSize > 1){
+			ctx.fillText("x"+this.inventory.contents[0][x].stackSize, topLeftX + b + (x*(boxWidth+5)) + 3,topLeftY + b -3 +boxWidth);
+		}
+		
 		
 	}
 	ctx.restore();
@@ -163,4 +176,10 @@ Player.prototype.getClickedItem = function(x,y){
 			}
 		}
 	}
+}
+
+Player.prototype.handleMove = new CustomEvent('usermoved', this);
+
+Player.prototype.playerMove = function(){
+	window.dispatchEvent(this.handleMove);
 }
