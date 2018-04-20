@@ -322,6 +322,7 @@ window.onload = function()
 	})
 
 	window.addEventListener('contextmenu', function(e){
+		e.preventDefault();
 		let treeTile = map.getTile({x:mouse.x,y:mouse.y,map:'map_Trees'});    
 		
 		let x = mouse.x;
@@ -420,9 +421,22 @@ window.onload = function()
 };
 let frame1 = true;
 
+
+/* Area to handle events from the socket! */
+
+socket.on('playerConnected', function(player){
+	/* 
+	 * Server will send us a player object
+	 * this will have their position on the map
+	 * image information
+	 */
+	
+})
+
+
 function drawGame()
 {
-	if(!tilesetLoaded || !playersetLoaded) { requestAnimationFrame(drawGame); return; }
+	if(!tilesetLoaded || !playersetLoaded || !map.draw) { requestAnimationFrame(drawGame); return; }
 	if(ctx==null) { return; }
 
 	if(frame1){
@@ -462,6 +476,7 @@ function drawGame()
 	viewport.update(player.position[0] + (player.dimensions[0]/2),
 		player.position[1] + (player.dimensions[1]/2));
 
+		
 	map.draw(map.map);
 	/* draw selection */
 

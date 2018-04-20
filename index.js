@@ -1,9 +1,9 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const url = require('url');
 const io_client = require('socket.io-client');
 
-let win
+let win;
 
 /* Make this file connect to the server and not index.html */
 
@@ -43,7 +43,9 @@ app.on('ready', function(){
   socket = io_client('http://localhost:3000');
 
   socket.on('connect', function(){
-    console.log('Connected to server!');
+    
+   
+
     createWindow('index');
     if(timer){
       clearTimeout(timer);

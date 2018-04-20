@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en" style="background-color:rgba(0,0,0,0)">
+    <script src="https://apis.google.com/js/client:platform.js?onload=start" async defer>
+    </script>
+    <script>
+        function start() {
+            gapi.load('auth2', function() {
+            auth2 = gapi.auth2.init({
+                client_id: '1032690776436-p2plfbq9v27r7c056ik69hur21o47vn9.apps.googleusercontent.com',
+                // Scopes to request in addition to 'profile' and 'email'
+                //scope: 'additional_scope'
+            });
+            var ipcRenderer = require('electron').ipcRenderer;
+            function signInCallback(obj){
+                console.log(obj);
+                ipcRenderer.send('loginCode', obj.code)
+            }
+            auth2.grantOfflineAccess().then(signInCallback);
+            });
+        }
+        </script>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body style="background-color:rgba(0,0,0,0)">
+</body>
+</html>

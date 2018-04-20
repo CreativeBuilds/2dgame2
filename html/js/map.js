@@ -6,38 +6,62 @@ function Map(mapName){
 
 	let image = null;
 
-	this.map = require(__dirname + `/maps/${mapName}.json`);
+	this.map;
+
 	/*
 	 * Nowalk is restricting where the player can walk
 	 */
-	this.map_noWalk = require(__dirname + `/maps/${mapName}_noWalk.json`);
+	this.map_noWalk;
+
 	/*
 	 * Z2-T is where trees/bushes are
 	 */
-	this.map_Trees = require(__dirname + `/maps/${mapName}_Z2-T.json`);
+	this.map_Trees;
 
-	mapW = this.map[0].length, mapH = this.map.length; 
+	let ree = this;
 
-	let glob = this;
-	this.values = getValue;
+	$(document).ready(function(){
+		$.getJSON(`/maps/${mapName}.json`, function(data){
+			ree.map = data;
+			$.getJSON(`/maps/${mapName}_noWalk.json`, function(data){
+				ree.map_noWalk = data;
+				$.getJSON(`/maps/${mapName}_Z2-T.json`, function(data){
+					ree.map_Trees = data;
 
-	this.draw = function(map){
-		for(let y = viewport.startTile[1]; y <= viewport.endTile[1]; ++y)
-		{
-			inner: for(let x = viewport.startTile[0]; x <= viewport.endTile[0]; ++x)
-			{
-				/*
-				 * Get the tile type using this.values[this.map[y][x]].sprite
-				 */
-				let num = parseInt(map[y][x]);
-				if(num === -1){continue inner;}
-				
-				let tile = getSprite({ num });
-				ctx.drawImage(tileset, tile.x,tile.y,tile.w,tile.h, viewport.offset[0]+(x*tileW),viewport.offset[1]+(y*tileH),tileW,tileH);
-			}
-		}
+					mapW = ree.map[0].length, mapH = ree.map.length; 
+
+					let glob = ree;
+					ree.values = getValue;
+
+					ree.draw = function(map){
+						for(let y = viewport.startTile[1]; y <= viewport.endTile[1]; ++y)
+						{
+							inner: for(let x = viewport.startTile[0]; x <= viewport.endTile[0]; ++x)
+							{
+								/*
+								 * Get the tile type using this.values[this.map[y][x]].sprite
+								 */
+								let num = parseInt(map[y][x]);
+								if(num === -1){continue inner;}
+								
+								let tile = getSprite({ num });
+								ctx.drawImage(tileset, tile.x,tile.y,tile.w,tile.h, viewport.offset[0]+(x*tileW),viewport.offset[1]+(y*tileH),tileW,tileH);
+							}
+						}
+						
+					}
+					
+				})
+			})
+		})
 		
-	}
+		
+	})
+
+	
+
+	
+
 	
 }
 
