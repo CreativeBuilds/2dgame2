@@ -421,8 +421,27 @@ window.onload = function()
 };
 let frame1 = true;
 
-
+//TODO if the map gets to be so large we may need to increase the timeout time on this refresh timer! Or find a work around
+var refresh = setTimeout(function(){
+	location.reload();
+},250)
 /* Area to handle events from the socket! */
+
+window.addEventListener('treeChopped', function(event){
+	let obj = event.details;
+
+	socket.emit('chopTree', {});
+})
+
+socket.on('connect', function(){
+	socket.emit('loadmaps');
+})
+
+socket.on('map', function(){
+	if(refresh){
+		clearTimeout(refresh);
+	}
+})
 
 socket.on('playerConnected', function(player){
 	/* 
@@ -437,6 +456,7 @@ socket.on('playerConnected', function(player){
 function drawGame()
 {
 	if(!tilesetLoaded || !playersetLoaded || !map.draw) { requestAnimationFrame(drawGame); return; }
+	if(!map || !map.map || !map.map_Trees || !map.map_noWalk){ requestAnimationFrame(drawGame); return;}
 	if(ctx==null) { return; }
 
 	if(frame1){

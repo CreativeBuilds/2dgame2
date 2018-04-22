@@ -4,10 +4,10 @@ function Character({ xSpawn = 0, ySpawn = 0 , baseSpeed = 250})
 	this.tileTo		= [xSpawn,ySpawn];
 	this.timeMoved	= 0;
 	this.dimensions	= [32,32];
-	this.position	= [this.tileFrom[0]*tileW,this.tileFrom[1]*tileH];
+	this.position	= [this.tileFrom[0]*tileW,this.tileFrom[1]*tileH]; // Deteremined client side depending on viewport
 	this.delayMove	= baseSpeed;
 
-	this.direction = directions.up;
+	this.direction = directions.up; //Determined client side
 
 	this.sprites = {};
 	this.sprites[directions.up] = [{x:0,y:0,w:32,h:32}];

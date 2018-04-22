@@ -11,6 +11,9 @@
   "dependencies": {
     "async": "^2.6.0",
     "body-parser": "^1.18.2",
+    "connect": "^3.6.6",
+    "connect-mongo": "^2.0.1",
+    "cookie": "^0.3.1",
     "cookie-parser": "^1.4.3",
     "csv-parse": "^2.0.4",
     "csv-to-array": "^1.0.2",
@@ -22,9 +25,9 @@
     "http": "0.0.0",
     "mongodb": "^3.0.7",
     "mongoose": "^5.0.15",
-    "mongoose-session-store": "0.0.3",
     "passport": "^0.4.0",
     "passport-google-auth": "^1.0.2",
+    "passport-google-oauth20": "^1.0.0",
     "passport.socketio": "^3.7.0",
     "socket.io": "^2.1.0",
     "socket.io-client": "^2.1.0"

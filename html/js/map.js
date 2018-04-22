@@ -20,51 +20,46 @@ function Map(mapName){
 
 	let ree = this;
 
-	$(document).ready(function(){
-		$.getJSON(`/maps/${mapName}.json`, function(data){
-			ree.map = data;
-			$.getJSON(`/maps/${mapName}_noWalk.json`, function(data){
-				ree.map_noWalk = data;
-				$.getJSON(`/maps/${mapName}_Z2-T.json`, function(data){
-					ree.map_Trees = data;
+	mapW = 0, mapH = 0; 
 
-					mapW = ree.map[0].length, mapH = ree.map.length; 
-
-					let glob = ree;
-					ree.values = getValue;
-
-					ree.draw = function(map){
-						for(let y = viewport.startTile[1]; y <= viewport.endTile[1]; ++y)
-						{
-							inner: for(let x = viewport.startTile[0]; x <= viewport.endTile[0]; ++x)
-							{
-								/*
-								 * Get the tile type using this.values[this.map[y][x]].sprite
-								 */
-								let num = parseInt(map[y][x]);
-								if(num === -1){continue inner;}
-								
-								let tile = getSprite({ num });
-								ctx.drawImage(tileset, tile.x,tile.y,tile.w,tile.h, viewport.offset[0]+(x*tileW),viewport.offset[1]+(y*tileH),tileW,tileH);
-							}
-						}
-						
-					}
-					
-				})
-			})
-		})
-		
-		
+	socket.on('map', function(obj){
+		console.log("got map!", obj);
+		switch(obj.name){
+			case 'tree':
+				ree.map_Trees = obj.map;
+				break;
+			case 'background':
+				ree.map = obj.map;
+				mapW = ree.map[0].length, mapH = ree.map.length; 
+				break;
+			case 'nowalk':
+				ree.map_noWalk = obj.map;
+				break;
+		}
 	})
 
-	
+	let glob = ree;
+	this.values = getValue;
 
-	
-
+	this.draw = function(map){
+		for(let y = viewport.startTile[1]; y <= viewport.endTile[1]; ++y)
+		{
+			inner: for(let x = viewport.startTile[0]; x <= viewport.endTile[0]; ++x)
+			{
+				/*
+					* Get the tile type using this.values[this.map[y][x]].sprite
+					*/
+				let num = parseInt(map[y][x]);
+				if(num === -1){continue inner;}
+				
+				let tile = getSprite({ num });
+				ctx.drawImage(tileset, tile.x,tile.y,tile.w,tile.h, viewport.offset[0]+(x*tileW),viewport.offset[1]+(y*tileH),tileW,tileH);
+			}
+		}
+		
+	}
 	
 }
-
 
 Map.prototype.canWalk = function(x,y){
     //Takes coordinates in tiles not pixels
