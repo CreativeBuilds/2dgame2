@@ -9,7 +9,7 @@ function getTileForValue(x,y){
             "x":x,
             "y":y,
             "type": "grass", 
-            "sprites":[{x:x*32,y:y*32,w:32,h:32,d:200}]
+            "sprites":[{x:x*32,y:y*32,w:32,h:32}]
         },
         {
             "xMin":0,
@@ -17,7 +17,7 @@ function getTileForValue(x,y){
             "yMin":0,
             "yMax":2,
             "type": "path", 
-            "sprites":[{x:x*32,y:y*32,w:32,h:32,d:200}]
+            "sprites":[{x:x*32,y:y*32,w:32,h:32}]
             
         },
         {

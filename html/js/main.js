@@ -423,8 +423,8 @@ let frame1 = true;
 
 //TODO if the map gets to be so large we may need to increase the timeout time on this refresh timer! Or find a work around
 var refresh = setTimeout(function(){
-	location.reload();
-},250)
+	//location.reload();
+},1000)
 /* Area to handle events from the socket! */
 
 window.addEventListener('treeChopped', function(event){
@@ -509,7 +509,7 @@ function drawGame()
 	}
 	player.draw();
 
-	map.draw(map.map_Trees);
+	//map.draw(map.map_Trees);
 
 	if(toggle.chopping){
 		toggle.chopping.draw();

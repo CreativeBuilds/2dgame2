@@ -24,6 +24,8 @@ var sessionMiddleware = session({
   })
 })
 
+var diff = function (a, b) { return Math.abs(a - b); }
+
 const config = require('./config.json');
 
 const fs = require('fs');
@@ -213,7 +215,12 @@ function getPlayer(userID, callback){
     callback(err, player);
   })
 }
-var connect = require('connect')
+
+function updatePlayer(socket, player){
+  socket.emit('updatePlayer', player);
+}
+
+var connect = require('connect');
 io.on('connection', function(socket){
   /* see if the user is logged on */
   // If they're not logged on, send them to logon screen
@@ -307,9 +314,33 @@ io.on('connection', function(socket){
   /*
    * The user is moving!
    */
-  socket.on('move', function(character){
-    let position = socket.player.position;
-    if(moveTo.x > position.x){}
+  //TODO Fix multiple socket error
+  //If the user opens multiple tabs, and trys to move on one, then on the other, this will pass in the current setup
+  //Make it so when the user connects, see if the player is already connected to another socket, if so, close that socket.
+
+  socket.on('move', function(moveTo){
+    //socket.player is going to be a player object from the DB;
+    //this means it has a tileFrom and tileTo
+    let position = socket.player.tileFrom;
+    //Check to see if the movement the player want's to do is valid.
+
+    if(diff(moveTo.x, position.x) < 2){
+      if(diff(moveTo.y, position.y) > 0){} else {
+        //Send the user a updated player object;
+        socket.player.moveTo = moveTo;
+      }
+    }
+
+    if(diff(moveTo.y, position.y) < 2){
+      if(diff(moveTo.x, position.x) > 0){} else {
+        //Send the user a updated player object;
+        socket.player.moveTo = moveTo;
+      }
+    }
+
+    updatePlayer(socket, socket.player);
+
+
   })
 
   /*
